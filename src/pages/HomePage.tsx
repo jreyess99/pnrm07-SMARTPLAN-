@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { mockPanoramas } from '../data/mockData';
+import { fetchPanoramasFromTicketmaster } from '../data/mockData';
 import PanoramaCard from '../components/PanoramaCard';
 import WeatherWidget from '../components/WeatherWidget';
-import { Category, CompanyType } from '../types';
+import { Category, CompanyType, Panorama } from '../types';
 import toast, { Toast } from 'react-hot-toast';
 import GoogleMapWidget from '../components/GoogleMapWidget';
 
@@ -10,6 +10,9 @@ const HomePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
   const [selectedCompanyType, setSelectedCompanyType] = useState<CompanyType | 'all'>('all');
   const [maxPrice, setMaxPrice] = useState<number>(50000);
+  const [panoramas, setPanoramas] = useState<Panorama[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const toastId = 'welcome-toast';
@@ -36,13 +39,21 @@ const HomePage: React.FC = () => {
     );
   }, []);
 
+  useEffect(() => {
+    setLoading(true);
+    fetchPanoramasFromTicketmaster()
+      .then(setPanoramas)
+      .catch((err) => setError('Error al cargar panoramas'))
+      .finally(() => setLoading(false));
+  }, []);
+
   const categories: Category[] = [
     'gastronomia', 'deportes', 'cultura', 'naturaleza', 'indoor',
     'outdoor', 'cine', 'teatro', 'ferias', 'talleres'
   ];
   const companyTypes: CompanyType[] = ['individual', 'pareja', 'grupo', 'familia'];
 
-  const filteredPanoramas = mockPanoramas.filter(panorama => {
+  const filteredPanoramas = panoramas.filter(panorama => {
     const categoryMatch = selectedCategory === 'all' || panorama.category === selectedCategory;
     const companyTypeMatch = selectedCompanyType === 'all' || panorama.companyType.includes(selectedCompanyType);
     const priceMatch = panorama.price <= maxPrice;
@@ -130,11 +141,17 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Lista de panoramas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 bg-white/80 p-4 rounded-xl shadow">
-            {filteredPanoramas.map(panorama => (
+          {loading ? (
+            <div className="text-center text-gray-500">Cargando panoramas...</div>
+          ) : error ? (
+            <div className="text-center text-red-500">{error}</div>
+          ) : filteredPanoramas.length === 0 ? (
+            <div className="text-center text-gray-500">No se encontraron panoramas.</div>
+          ) : (
+            filteredPanoramas.map(panorama => (
               <PanoramaCard key={panorama.id} panorama={panorama} />
-            ))}
-          </div>
+            ))
+          )}
         </div>
 
         {/* Sidebar con widget del clima y mapa */}

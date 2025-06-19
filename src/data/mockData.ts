@@ -1,4 +1,43 @@
 import { Panorama } from '../types';
+import fetch from 'cross-fetch';
+
+
+function mapTicketmasterEventToPanorama(event: any): Panorama {
+  
+  return {
+    id: event.id,
+    title: event.name,
+    description: event.info || event.pleaseNote || 'Sin descripción',
+    category: 'cultura', 
+    companyType: ['individual', 'pareja', 'grupo', 'familia'], 
+    price: event.priceRanges?.[0]?.min || 10000, 
+    location: {
+      lat: event._embedded?.venues?.[0]?.location?.latitude ? parseFloat(event._embedded.venues[0].location.latitude) : -33.4489,
+      lng: event._embedded?.venues?.[0]?.location?.longitude ? parseFloat(event._embedded.venues[0].location.longitude) : -70.6693,
+      address: event._embedded?.venues?.[0]?.address?.line1 || 'Dirección no disponible',
+    },
+    weatherDependent: false, // No hay info, por defecto false
+    indoor: true, // No hay info, por defecto true
+    availability: {
+      startDate: event.dates?.start?.localDate || '2024-01-01',
+      endDate: event.dates?.end?.localDate || event.dates?.start?.localDate || '2024-12-31',
+      capacity: 100, // No hay info, valor por defecto
+      currentOccupancy: 0, // No hay info, valor por defecto
+    },
+    imageUrl: event.images?.[0]?.url || 'https://via.placeholder.com/400x300',
+    rating: 4.5, // No hay rating en Ticketmaster, valor por defecto
+  };
+}
+
+export async function fetchPanoramasFromTicketmaster(): Promise<Panorama[]> {
+  const apiKey = process.env.REACT_APP_TICKETMASTER_API_KEY || process.env.TICKETMASTER_API_KEY;
+  if (!apiKey) throw new Error('Falta la API Key de Ticketmaster en el .env');
+  const url = `https://app.ticketmaster.com/discovery/v2/events.json?countryCode=CL&apikey=${apiKey}`;
+  const response = await fetch(url);
+  const data = await response.json();
+  if (!data._embedded?.events) return [];
+  return data._embedded.events.map(mapTicketmasterEventToPanorama);
+}
 
 export const mockPanoramas: Panorama[] = [
   {
