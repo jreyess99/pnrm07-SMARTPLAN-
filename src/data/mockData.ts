@@ -30,10 +30,7 @@ function mapTicketmasterEventToPanorama(event: any): Panorama {
 }
 
 export async function fetchPanoramasFromTicketmaster(): Promise<Panorama[]> {
-  const apiKey = process.env.REACT_APP_TICKETMASTER_API_KEY || process.env.TICKETMASTER_API_KEY;
-  if (!apiKey) throw new Error('Falta la API Key de Ticketmaster en el .env');
-  const url = `https://app.ticketmaster.com/discovery/v2/events.json?countryCode=CL&apikey=${apiKey}`;
-  const response = await fetch(url);
+  const response = await fetch('http://localhost:4000/api/ticketmaster');
   const data = await response.json();
   if (!data._embedded?.events) return [];
   return data._embedded.events.map(mapTicketmasterEventToPanorama);
@@ -109,4 +106,4 @@ export const mockPanoramas: Panorama[] = [
     imageUrl: 'https://images.unsplash.com/photo-1582552938357-32b906df40cb',
     rating: 4.7
   }
-]; 
+];
