@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -13,9 +15,10 @@ const RegisterForm: React.FC = () => {
     setSuccess('');
     try {
       await axios.post('http://localhost:4000/api/register', { email, password });
-      setSuccess('Usuario registrado correctamente. Ahora puedes iniciar sesión.');
-      setEmail('');
-      setPassword('');
+      setSuccess('Usuario registrado correctamente. Redirigiendo al login...');
+      setTimeout(() => {
+        navigate('/login', { state: { registered: true } });
+      }, 1500);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Error al registrar usuario');
     }

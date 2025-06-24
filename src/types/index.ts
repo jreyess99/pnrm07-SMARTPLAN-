@@ -6,13 +6,14 @@ export interface Panorama {
   id: string;
   title: string;
   description: string;
-  category: Category;
+  category: Category | string;
   companyType: CompanyType[];
   price: number;
   location: {
     lat: number;
     lng: number;
     address: string;
+    city?: string;
   };
   weatherDependent: boolean;
   indoor: boolean;
@@ -24,6 +25,9 @@ export interface Panorama {
   };
   imageUrl: string;
   rating: number;
+  date?: string;
+  time?: string;
+  url?: string;
 }
 
 export interface WeatherData {
@@ -40,4 +44,11 @@ export interface UserPreferences {
     lat: number;
     lng: number;
   };
-} 
+}
+
+export interface User {
+  _id: string;
+  email: string;
+  favorites: string[];
+  attending: string[];
+}

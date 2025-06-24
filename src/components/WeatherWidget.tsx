@@ -11,7 +11,7 @@ interface WeatherData {
   name: string;
 }
 
-const CITY = "Santiago,CL";
+const CITY = "Mexico City,MX";
 const API_KEY = "b895f2a5ac7d6078015be7093ef582f6"; 
 
 const WeatherWidget: React.FC = () => {

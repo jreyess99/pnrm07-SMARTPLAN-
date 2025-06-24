@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { fetchPanoramasFromTicketmaster } from '../data/mockData';
 import PanoramaCard from '../components/PanoramaCard';
 import WeatherWidget from '../components/WeatherWidget';
-import { Category, CompanyType, Panorama } from '../types';
+import { Category, Panorama } from '../types';
 import toast, { Toast } from 'react-hot-toast';
 import GoogleMapWidget from '../components/GoogleMapWidget';
 
 const HomePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
-  const [selectedCompanyType, setSelectedCompanyType] = useState<CompanyType | 'all'>('all');
-  const [maxPrice, setMaxPrice] = useState<number>(50000);
   const [panoramas, setPanoramas] = useState<Panorama[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,13 +17,13 @@ const HomePage: React.FC = () => {
     toast.custom(
       (t: Toast) => (
         <div
-          className={`${
+          className={`$
             t.visible ? 'animate-enter' : 'animate-leave'
           } bg-blue-600 text-white p-4 rounded-lg shadow-lg w-[320px] flex flex-col items-center`}
         >
-          <h3 className="text-lg font-semibold mb-2">¡Bienvenido a Panorama! 🌟</h3>
+          <h3 className="text-lg font-semibold mb-2">¡Bienvenido a SmartPlan! 🌟</h3>
           <p className="text-sm text-center">
-            Descubre las mejores actividades para disfrutar en la ciudad de Santiago
+            Descubre las mejores actividades para disfrutar en la ciudad de Ciudad de México
           </p>
           <button
             onClick={() => toast.dismiss(t.id)}
@@ -41,33 +39,31 @@ const HomePage: React.FC = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetchPanoramasFromTicketmaster()
+    fetchPanoramasFromTicketmaster(selectedCategory)
       .then(setPanoramas)
       .catch((err) => setError('Error al cargar panoramas'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedCategory]);
 
   const categories: Category[] = [
     'gastronomia', 'deportes', 'cultura', 'naturaleza', 'indoor',
     'outdoor', 'cine', 'teatro', 'ferias', 'talleres'
   ];
-  const companyTypes: CompanyType[] = ['individual', 'pareja', 'grupo', 'familia'];
 
   const filteredPanoramas = panoramas.filter(panorama => {
     const categoryMatch = selectedCategory === 'all' || panorama.category === selectedCategory;
-    const companyTypeMatch = selectedCompanyType === 'all' || panorama.companyType.includes(selectedCompanyType);
-    const priceMatch = panorama.price <= maxPrice;
-    return categoryMatch && companyTypeMatch && priceMatch;
+    return categoryMatch;
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3">
-          <h1 className="text-3xl font-bold text-gray-800 mb-8">¡Descubre tu próximo panorama!</h1>
+    <div className="container mx-auto px-2 py-4 max-w-7xl">
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Columna principal panoramas */}
+        <div className="flex-1 flex flex-col gap-4">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">¡Descubre tu próximo panorama!</h1>
 
           {/* Filtros */}
-          <div className="mb-8 space-y-4">
+          <div className="mb-4 space-y-2">
             <div>
               <h2 className="text-lg font-semibold mb-2">Categorías</h2>
               <div className="flex flex-wrap gap-2">
@@ -96,71 +92,38 @@ const HomePage: React.FC = () => {
                 ))}
               </div>
             </div>
-
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Tipo de compañía</h2>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setSelectedCompanyType('all')}
-                  className={`px-4 py-2 rounded-full font-medium shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 ${
-                    selectedCompanyType === 'all'
-                      ? 'bg-primary text-white scale-105'
-                      : 'bg-gray-100 text-gray-700 hover:bg-primary/10'
-                  }`}
-                >
-                  Todos
-                </button>
-                {companyTypes.map(type => (
-                  <button
-                    key={type}
-                    onClick={() => setSelectedCompanyType(type)}
-                    className={`px-4 py-2 rounded-full font-medium shadow transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 ${
-                      selectedCompanyType === type
-                        ? 'bg-primary text-white scale-105'
-                        : 'bg-gray-100 text-gray-700 hover:bg-primary/10'
-                    }`}
-                  >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Precio máximo: ${maxPrice.toLocaleString()}</h2>
-              <input
-                type="range"
-                min="0"
-                max="100000"
-                step="5000"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full accent-primary h-2 rounded-lg bg-gray-200 appearance-none cursor-pointer"
-              />
-            </div>
           </div>
 
           {/* Lista de panoramas */}
-          {loading ? (
-            <div className="text-center text-gray-500">Cargando panoramas...</div>
-          ) : error ? (
-            <div className="text-center text-red-500">{error}</div>
-          ) : filteredPanoramas.length === 0 ? (
-            <div className="text-center text-gray-500">No se encontraron panoramas.</div>
-          ) : (
-            filteredPanoramas.map(panorama => (
-              <PanoramaCard key={panorama.id} panorama={panorama} />
-            ))
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {loading ? (
+              <div className="text-center text-gray-500 col-span-full">Cargando panoramas...</div>
+            ) : error ? (
+              <div className="text-center text-red-500 col-span-full">{error}</div>
+            ) : filteredPanoramas.length === 0 ? (
+              <div className="text-center text-gray-500 col-span-full">No se encontraron panoramas.</div>
+            ) : (
+              filteredPanoramas.map(panorama => (
+                <PanoramaCard key={panorama.id} panorama={panorama} />
+              ))
+            )}
+          </div>
         </div>
 
-        {/* Sidebar con widget del clima y mapa */}
-        <div className="lg:col-span-1 flex flex-col gap-6">
+        {/* Sidebar widgets */}
+        <div className="w-full lg:w-[380px] flex-shrink-0 flex flex-col gap-6">
           <div className="bg-white/80 rounded-xl shadow p-4">
             <WeatherWidget />
           </div>
           <div className="bg-white/80 rounded-xl shadow p-4">
-            <GoogleMapWidget />
+            <GoogleMapWidget
+              events={filteredPanoramas.map(p => ({
+                lat: p.location.lat,
+                lng: p.location.lng,
+                title: p.title,
+                url: p.url
+              }))}
+            />
           </div>
         </div>
       </div>
